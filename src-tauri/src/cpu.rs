@@ -25,10 +25,11 @@ pub async fn get_cpu_info() -> CpuInfo {
         //Need to wait because CPU is based on diff so need to refresh?
         std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
         sys.refresh_cpu_usage();
-        let usage = sys.cpus()[0].cpu_usage();
+        let average_usage =
+            sys.cpus().iter().map(|cpu| cpu.cpu_usage()).sum::<f32>() / sys.cpus().len() as f32;
 
         CpuInfo {
-            usage: usage,
+            usage: average_usage,
             name: name,
             vendor_id: vendor_id,
             brand: brand,
