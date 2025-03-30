@@ -13,9 +13,16 @@ export interface MemoryUsage {
   // free_swap: number;
 }
 
+export interface GpuUsage {
+  gpu_usage: number;
+  gpu_memory_usage: number;
+  gpu_temp: number;
+}
+
 export interface UsageData {
   memory_usage: MemoryUsage;
   cpu_usage: CpuUsage;
+  gpu_usage: GpuUsage;
 }
 
 const defaultUsageData: UsageData = {
@@ -28,6 +35,11 @@ const defaultUsageData: UsageData = {
   cpu_usage: {
     average_cpu_usage: 0,
     cpu_usage_arr: [0],
+  },
+  gpu_usage: {
+    gpu_usage: 0,
+    gpu_memory_usage: 0,
+    gpu_temp: 0,
   },
 };
 

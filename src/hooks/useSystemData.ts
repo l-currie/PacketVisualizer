@@ -16,6 +16,12 @@ export interface MemoryInfo {
   total_swap: number;
 }
 
+export interface GpuInfo {
+  name: string;
+  driver_version: string;
+  total_memory: number;
+}
+
 const defaultCpuData: CpuData = {
   name: "Fetching CPU Data...",
   brand: "",
@@ -28,17 +34,26 @@ const defaultMemoryInfo: MemoryInfo = {
   total_swap: 0,
 };
 
+const defaultGpuInfo: GpuInfo = {
+  name: "Fetching GPU Data...",
+  driver_version: "0",
+  total_memory: 0,
+};
+
 const useSystemData = () => {
   const [cpuData, setCpuData] = useState<CpuData>(defaultCpuData);
-  const [memoryInfo, setMemoryInfo] = useState<MemoryInfo>(defaultMemoryInfo);
+  const [memoryData, setMemoryData] = useState<MemoryInfo>(defaultMemoryInfo);
+  const [gpuData, setGpuData] = useState<GpuInfo>(defaultGpuInfo);
 
   useEffect(() => {
     const fetchSysData = async () => {
       try {
-        const cpuData: CpuData = await invoke("get_cpu_info");
+        const cpuInfo: CpuData = await invoke("get_cpu_info");
         const memoryInfo: MemoryInfo = await invoke("get_memory_info");
-        setCpuData(cpuData);
-        setMemoryInfo(memoryInfo);
+        const gpuInfo: GpuInfo = await invoke("get_gpu_info");
+        setCpuData(cpuInfo);
+        setMemoryData(memoryInfo);
+        setGpuData(gpuInfo);
       } catch (error) {
         console.error("Error fetching data: ", error);
       }
@@ -47,7 +62,7 @@ const useSystemData = () => {
     fetchSysData();
   }, []);
 
-  return { cpuData, memoryInfo };
+  return { cpuData, memoryData, gpuData };
 };
 
 export default useSystemData;
