@@ -1,3 +1,4 @@
+use nvml_wrapper::Nvml;
 use serde::{Deserialize, Serialize};
 use sysinfo::{CpuRefreshKind, RefreshKind, System};
 
@@ -18,9 +19,17 @@ pub struct CpuUsage {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct GpuUsage {
+    gpu_usage: u32,
+    gpu_memory_usage: u32,
+    gpu_temp: u32,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct UsageData {
     memory_usage: MemoryUsage,
     cpu_usage: CpuUsage,
+    gpu_usage: GpuUsage,
 }
 
 async fn get_memory_usage() -> Result<MemoryUsage, String> {
@@ -69,6 +78,30 @@ async fn get_cpu_usage() -> Result<CpuUsage, String> {
     Ok(result)
 }
 
+async fn get_gpu_usage() -> Result<GpuUsage, String> {
+    let result = tokio::task::spawn_blocking(|| {
+        let nvml = Nvml::init().expect("Failed to initialize NVML");
+        let device = nvml.device_by_index(0).expect("Failed to get device");
+
+        let utilization = device
+            .utilization_rates()
+            .expect("Failed to get utilization");
+        let temp = device
+            .temperature(nvml_wrapper::enum_wrappers::device::TemperatureSensor::Gpu)
+            .expect("Failed to get temperature");
+
+        GpuUsage {
+            gpu_usage: utilization.gpu,
+            gpu_memory_usage: utilization.memory,
+            gpu_temp: temp,
+        }
+    })
+    .await
+    .expect("Failed");
+
+    Ok(result)
+}
+
 #[tauri::command]
 pub async fn get_usage_data() -> Result<UsageData, String> {
     // Handle the result of get_cpu_usage and get_memory_usage
@@ -78,9 +111,13 @@ pub async fn get_usage_data() -> Result<UsageData, String> {
     let memory_usage = get_memory_usage()
         .await
         .map_err(|e| format!("Failed to get memory usage: {}", e))?;
+    let gpu_usage = get_gpu_usage()
+        .await
+        .map_err(|e| format!("Failed to get memory usage: {}", e))?;
 
     Ok(UsageData {
         cpu_usage,
         memory_usage,
+        gpu_usage,
     })
 }
