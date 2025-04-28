@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
-export interface CpuData {
+export interface CpuInfo {
   name: string;
   brand: string;
   // cores: number;
@@ -22,7 +22,7 @@ export interface GpuInfo {
   total_memory: number;
 }
 
-const defaultCpuData: CpuData = {
+const defaultCpuInfo: CpuInfo = {
   name: "Fetching CPU Data...",
   brand: "",
   frequency: 0,
@@ -41,14 +41,14 @@ const defaultGpuInfo: GpuInfo = {
 };
 
 const useSystemData = () => {
-  const [cpuData, setCpuData] = useState<CpuData>(defaultCpuData);
+  const [cpuData, setCpuData] = useState<CpuInfo>(defaultCpuInfo);
   const [memoryData, setMemoryData] = useState<MemoryInfo>(defaultMemoryInfo);
   const [gpuData, setGpuData] = useState<GpuInfo>(defaultGpuInfo);
 
   useEffect(() => {
     const fetchSysData = async () => {
       try {
-        const cpuInfo: CpuData = await invoke("get_cpu_info");
+        const cpuInfo: CpuInfo = await invoke("get_cpu_info");
         const memoryInfo: MemoryInfo = await invoke("get_memory_info");
         const gpuInfo: GpuInfo = await invoke("get_gpu_info");
         setCpuData(cpuInfo);

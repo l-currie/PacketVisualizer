@@ -1,11 +1,13 @@
 mod cpu;
 mod gpu;
 mod memory;
+mod processes;
 mod usage;
 
 use cpu::get_cpu_info;
 use gpu::get_gpu_info;
 use memory::get_memory_info;
+use processes::get_processes_info;
 use std::env;
 use usage::get_usage_data;
 
@@ -21,7 +23,8 @@ pub fn run() {
             get_cpu_info,
             get_memory_info,
             get_usage_data,
-            get_gpu_info
+            get_gpu_info,
+            get_processes_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

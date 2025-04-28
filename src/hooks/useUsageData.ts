@@ -25,6 +25,12 @@ export interface UsageData {
   gpu_usage: GpuUsage;
 }
 
+export interface HistoricUsageArr {
+  cpuUsage: [number, number][];
+  memoryUsage: [number, number][];
+  gpuUsage: [number, number][];
+}
+
 const defaultUsageData: UsageData = {
   memory_usage: {
     used_mem: 0,
@@ -44,13 +50,34 @@ const defaultUsageData: UsageData = {
 };
 
 const useUsageData = () => {
-  const [usageData, setUsageData] = useState<UsageData>(defaultUsageData);
+  const [usageArr, setUsageArr] = useState<HistoricUsageArr>({
+    cpuUsage: [[0, 0]],
+    memoryUsage: [[0, 0]],
+    gpuUsage: [[0, 0]],
+  });
 
   useEffect(() => {
     const fetchUsageData = async () => {
       try {
         const data: UsageData = await invoke("get_usage_data");
-        setUsageData(data);
+
+        setUsageArr((prev) => {
+          const newCpuUsage: [number, number][] = [
+            ...prev.cpuUsage,
+            [prev.cpuUsage.length, data.cpu_usage.average_cpu_usage],
+          ];
+          const newMemoryUsage: [number, number][] = [
+            ...prev.memoryUsage,
+            [prev.memoryUsage.length, data.memory_usage.used_mem],
+          ];
+          const newGpuUsage: [number, number][] = [...prev.gpuUsage, [prev.gpuUsage.length, data.gpu_usage.gpu_usage]];
+
+          return {
+            cpuUsage: newCpuUsage.slice(-40),
+            memoryUsage: newMemoryUsage.slice(-40),
+            gpuUsage: newGpuUsage.slice(-40),
+          };
+        });
       } catch (error) {
         console.error("Error fetching usage data: ", error);
       }
@@ -62,7 +89,7 @@ const useUsageData = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  return { usageData };
+  return { usageArr };
 };
 
 export default useUsageData;
